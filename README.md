@@ -24,7 +24,7 @@ This Java project provides a versatile `Polynom` class for performing operations
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
+   git clone https://github.com/Ratel2000/PolynomialCalculator.git
    
 Open the project in your preferred Java development environment.
 
