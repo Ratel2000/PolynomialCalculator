@@ -5,13 +5,14 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        int size = getSizeFromUser(scanner);
+        int size1 = getSizeFromUser(scanner);
 
-        int[] expArr1 = getExpArrayValuesFromUser("first int", size, scanner);
-        double[] coffsArr1 = getCoffArrayValuesFromUser("first double", size, scanner);
+        int[] expArr1 = getExpArrayValuesFromUser("first int", size1, scanner);
+        double[] coffsArr1 = getCoffArrayValuesFromUser("first double", size1, scanner);
 
-        int[] expArr2 = getExpArrayValuesFromUser("second int", size, scanner);
-        double[] coffsArr2 = getCoffArrayValuesFromUser("second double", size, scanner);
+        int size2 = getSizeFromUser(scanner);
+        int[] expArr2 = getExpArrayValuesFromUser("second int", size2, scanner);
+        double[] coffsArr2 = getCoffArrayValuesFromUser("second double", size2, scanner);
 
         displayArray("First int", expArr1);
         displayArray("First double", coffsArr1);
@@ -20,7 +21,7 @@ public class Main {
 
         scanner.close();
 
-        Polynom polynom1 = new Polynom(expArr1, coffsArr1);
+        Polynom polynom1 =  new Polynom(expArr1, coffsArr1);
         Polynom polynom2 = new Polynom(expArr2, coffsArr2);
 
         System.out.println("p(x) = " + polynom1);
@@ -28,13 +29,13 @@ public class Main {
         System.out.println("Precision of operations is 7 digits after the decimal point");
         System.out.println("(p+q)(x) = " + polynom1 + " + " + polynom2 + " = " + polynom1.plus(polynom2));
         System.out.println("(p-q)(x) = " + polynom1 + " - " + polynom2 + " = " + polynom1.minus(polynom2));
-        System.out.println("p'(x) = " + Polynom.derivative(polynom1));
-        System.out.println("q'(x) = " + Polynom.derivative(polynom2));
+        System.out.println("p'(x) = " + polynom1.derivative());
+        System.out.println("q'(x) = " + polynom2.derivative());
         System.out.println("is p(x) = q(x) ? " + polynom1.equals(polynom2));
     }
 
     private static int getSizeFromUser(Scanner scanner) {
-        System.out.print("Enter the size of the arrays: ");
+        System.out.print("Enter the size of the array: ");
         return scanner.nextInt();
     }
 

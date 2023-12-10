@@ -1,43 +1,45 @@
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+
+import static java.lang.Math.round;
 
 // Class representing a polynomial
 public class Polynom {
-
-    // Small constant for handling precision errors
-    private static final double EPSILON = 1e-10;
-
-    // Number of decimal places to round to
-    private static final int DECIMAL_PRECISION = 10;
 
     // List to store the ordered pairs of powers and coefficients
     private ArrayList<OrderedPair> _polynom = new ArrayList<>();
 
     // Constructor to create a polynomial from a list of ordered pairs
-    public Polynom(ArrayList<OrderedPair> polynom) {
-        _polynom = polynom;
-    }
-
-    // Getter method to retrieve the list of ordered pairs
-    public ArrayList<OrderedPair> getPolynom() {
-        return _polynom;
+    private Polynom(ArrayList<OrderedPair> polynom) {
+        for (OrderedPair op : polynom) {
+            if (op.getCoefficient() != 0.0)
+                this._polynom.add(new OrderedPair(op.getPower(), op.getCoefficient()));
+        }
+        sortByPower(_polynom);
+        Collections.reverse(_polynom);
     }
 
     // Constructor to create a polynomial from arrays of powers and coefficients
-    public Polynom(int[] powers, double[] coefficients) {
+    public Polynom(int[] powers, double[] coefficients) throws IllegalArgumentException {
         // Check if the arrays have the same length
         if (powers.length != coefficients.length)
             throw new IllegalArgumentException("The arrays are not the same length!!!");
 
         // Create ordered pairs and add them to the polynomial
         for (int i = 0; i < powers.length; i++) {
-            _polynom.add(new OrderedPair(powers[i], coefficients[i]));
+            if (coefficients[i] != 0)
+                _polynom.add(new OrderedPair(powers[i], coefficients[i]));
         }
-
         // Sort the polynomial by power
         sortByPower(_polynom);
+        Collections.reverse(_polynom);
+        _polynom = this.roundCof().getPolynom();
+    }
+
+    // Getter method to retrieve the list of ordered pairs
+    public ArrayList<OrderedPair> getPolynom() {
+        return _polynom;
     }
 
     // Helper method to sort the polynomial by power
@@ -47,9 +49,14 @@ public class Polynom {
         polynom.sort(powerComparator);
     }
 
+    // Method to add two ordered pairs
+    private OrderedPair plus(OrderedPair op1, OrderedPair op2) {
+        return new OrderedPair(op1.getPower(), op1.getCoefficient() + op2.getCoefficient());
+    }
+
     // Method to add two polynomials
     public Polynom plus(Polynom param) {
-        ArrayList<OrderedPair> p = new ArrayList<>();
+        ArrayList<OrderedPair> pSum = new ArrayList<>();
 
         // Separate the polynomials into smaller and bigger based on size
         ArrayList<OrderedPair> smallerPolynom;
@@ -67,42 +74,43 @@ public class Polynom {
         while (i < smallerPolynom.size() && j < biggerPolynom.size()) {
             OrderedPair op1 = smallerPolynom.get(i);
             OrderedPair op2 = biggerPolynom.get(j);
-
             if (op1.getPower() == op2.getPower()) {
-                OrderedPair sum = plus(op1, op2);
-                double roundedCoefficient = roundCoefficient(sum.getCoefficient()); // Adjust the decimal places
-                if (Math.abs(roundedCoefficient) > Polynom.EPSILON) {
-                    p.add(new OrderedPair(op1.getPower(), roundedCoefficient));
-                }
+                pSum.add(new OrderedPair(plus(op1, op2)));
                 i++;
                 j++;
-            } else if (op1.getPower() < op2.getPower()) {
-                p.add(op1);
+            } else if (op1.getPower() > op2.getPower()) {
+                pSum.add(op1);
                 i++;
             } else {
-                p.add(op2);
+                pSum.add(op2);
                 j++;
             }
         }
 
         // Add remaining ordered pairs from both polynomials
         while (i < smallerPolynom.size()) {
-            p.add(smallerPolynom.get(i));
+            pSum.add(smallerPolynom.get(i));
             i++;
         }
         while (j < biggerPolynom.size()) {
-            p.add(biggerPolynom.get(j));
+            pSum.add(biggerPolynom.get(j));
             j++;
         }
 
-        return new Polynom(p);
+        return new Polynom(pSum).roundCof();
     }
 
     // Helper method to round the coefficient to a specified precision
-    private static double roundCoefficient(double coefficient) {
-        BigDecimal bd = new BigDecimal(Double.toString(coefficient));
-        bd = bd.setScale(Polynom.DECIMAL_PRECISION, RoundingMode.HALF_UP);
-        return bd.doubleValue();
+    private Polynom roundCof() {
+        ArrayList<OrderedPair> exactPolynomial = new ArrayList<>();
+        for (OrderedPair op : _polynom) {
+            // Number of decimal places to round to
+            double roundingPrecision = 1e7;
+            double rc = round(op.getCoefficient() * roundingPrecision) / roundingPrecision;
+            exactPolynomial.add(new OrderedPair(op.getPower(), rc));
+        }
+        return new Polynom(exactPolynomial);
+
     }
 
     // Method to subtract one polynomial from another
@@ -112,28 +120,21 @@ public class Polynom {
         for (OrderedPair op : param.getPolynom()) {
             negatedCoefficients.add(new OrderedPair(op.getPower(), -op.getCoefficient()));
         }
-
         return this.plus(new Polynom(negatedCoefficients));
     }
 
-    // Method to add two ordered pairs
-    public OrderedPair plus(OrderedPair op1, OrderedPair op2) {
-        return new OrderedPair(op1.getPower(), op1.getCoefficient() + op2.getCoefficient());
-    }
-
     // Method to compute the derivative of a polynomial
-    public static Polynom derivative(Polynom param) {
+    public Polynom derivative() {
         ArrayList<OrderedPair> derivativeOfParam = new ArrayList<>();
         // Compute the derivative of each ordered pair and add to the result
-        for (OrderedPair op : param.getPolynom()) {
+        for (OrderedPair op : this.getPolynom()) {
             int power = op.getPower();
             double coefficient = op.getCoefficient();
-            if (coefficient * power != 0) {
-                double roundedCoefficient = roundCoefficient(coefficient * power);
-                derivativeOfParam.add(new OrderedPair(power - 1, roundedCoefficient));
+            if (power != 0) {
+                derivativeOfParam.add(new OrderedPair(power - 1, coefficient));
             }
         }
-        return new Polynom(derivativeOfParam);
+        return new Polynom(derivativeOfParam).roundCof();
     }
 
     // Method to convert the polynomial to a string representation
@@ -144,20 +145,29 @@ public class Polynom {
             return "0";
         }
         for (OrderedPair op : _polynom) {
-            String term = "+";
-            if (op.getPower() == 1) {
-                term += op.getCoefficient() + "x";
-            } else if (op.getPower() == 0) {
+            String term = "";
+            if (op.getCoefficient() > 0)
+                term = "+";
+            if (op.getPower() == 0) {
                 term += op.getCoefficient();
+            } else if (op.getCoefficient() == 1.0 || op.getCoefficient() == -1.0) {
+                if (op.getCoefficient() == -1.0)
+                    term += "-";
+                if (op.getPower() == 1) {
+                    term += "x";
+                } else {
+                    term += "x^" + op.getPower();
+                }
+            } else if (op.getPower() == 1) {
+                term += op.getCoefficient() + "x";
             } else {
                 term += op.getCoefficient() + "x^" + op.getPower();
             }
-            stringBuilder.insert(0, term);
+            stringBuilder.append(term);
         }
-        if (stringBuilder.length() > 0 && stringBuilder.toString().charAt(0) == '+') {
+        if (stringBuilder.toString().charAt(0) == '+') {
             stringBuilder.deleteCharAt(0);
         }
-
         return stringBuilder.toString();
     }
 

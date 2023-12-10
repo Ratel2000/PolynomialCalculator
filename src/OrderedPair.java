@@ -7,6 +7,11 @@ public class OrderedPair {
         this.coefficient = coefficient;
     }
 
+    public OrderedPair(OrderedPair op) {
+        power = op.power;
+        coefficient = op.coefficient;
+    }
+
     public int getPower() {
         return power;
     }
