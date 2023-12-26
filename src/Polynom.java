@@ -12,6 +12,7 @@ public class Polynom {
 
     // Constructor to create a polynomial from a list of ordered pairs
     private Polynom(ArrayList<OrderedPair> polynom) {
+        // Copy the ordered pairs to the polynomial
         for (OrderedPair op : polynom) {
             if (op.getCoefficient() != 0.0)
                 this._polynom.add(new OrderedPair(op.getPower(), op.getCoefficient()));
@@ -92,6 +93,7 @@ public class Polynom {
             pSum.add(smallerPolynom.get(i));
             i++;
         }
+        // Add remaining ordered pairs from both polynomials
         while (j < biggerPolynom.size()) {
             pSum.add(biggerPolynom.get(j));
             j++;
@@ -117,6 +119,7 @@ public class Polynom {
     public Polynom minus(Polynom param) {
         // Negate the coefficients of the second polynomial and add them
         ArrayList<OrderedPair> negatedCoefficients = new ArrayList<>();
+        // Negate the coefficients of the second polynomial
         for (OrderedPair op : param.getPolynom()) {
             negatedCoefficients.add(new OrderedPair(op.getPower(), -op.getCoefficient()));
         }
@@ -141,9 +144,11 @@ public class Polynom {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
+        // Check if the polynomial is empty
         if (this.getPolynom().isEmpty()) {
             return "0";
         }
+        // Convert each ordered pair to a string and add to the result
         for (OrderedPair op : _polynom) {
             String term = "";
             if (op.getCoefficient() > 0)
@@ -165,6 +170,7 @@ public class Polynom {
             }
             stringBuilder.append(term);
         }
+        // Remove the leading plus sign
         if (stringBuilder.toString().charAt(0) == '+') {
             stringBuilder.deleteCharAt(0);
         }
